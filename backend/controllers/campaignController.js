@@ -1,5 +1,6 @@
 const Campaign = require("../models/Campaign")
 const { generateImage } = require("../services/imageService")
+const { generateCaption } = require("../services/captionService")
 
 const createCampaign = async (req, res) => {
 onsole.log("Generate API hit")
@@ -34,25 +35,21 @@ const generateCampaign = async (req, res) => {
 
     const imageBuffer = await generateImage(prompt)
 
-    const base64Image = Buffer.from(imageBuffer).toString("base64")
+    const base64Image = imageBuffer.toString("base64")
 
     const imageURL = `data:image/png;base64,${base64Image}`
 
-    console.log("Prompt:", prompt)
-    console.log("ImageURL length:", imageURL.length)
+    const caption = await generateCaption(prompt)
 
     const campaign = new Campaign({
       prompt,
       imageURL,
-      caption: "AI generated campaign"
+      caption
     })
 
     await campaign.save()
 
-    res.json({
-      message: "Campaign generated",
-      campaign
-    })
+    res.json(campaign)
 
   } catch (error) {
 
@@ -62,4 +59,22 @@ const generateCampaign = async (req, res) => {
   }
 
 }
-module.exports = { createCampaign, generateCampaign }
+const getCampaigns = async (req, res) => {
+console.log("History API hit")
+  try {
+
+    const campaigns = await Campaign.find().sort({ createdAt: -1 })
+
+    res.json(campaigns)
+
+  } catch (error) {
+
+    console.log(error)
+
+    res.status(500).json({ error: error.message })
+
+  }
+
+}
+
+module.exports = { createCampaign, generateCampaign, getCampaigns }
