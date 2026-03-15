@@ -1,16 +1,22 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai")
+const Groq = require("groq-sdk")
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY
+})
 
 const generateCaption = async (prompt) => {
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+  const chatCompletion = await groq.chat.completions.create({
+    model: "llama-3.1-8b-instant",
+    messages: [
+      {
+        role: "user",
+        content: `Write a short social media caption with hashtags for: ${prompt}`
+      }
+    ]
+  })
 
-  const result = await model.generateContent(
-    `Write a short social media caption with hashtags for: ${prompt}`
-  )
-
-  return result.response.text()
+  return chatCompletion.choices[0].message.content
 }
 
 module.exports = { generateCaption }
