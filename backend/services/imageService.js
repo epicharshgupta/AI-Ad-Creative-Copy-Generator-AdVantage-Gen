@@ -4,36 +4,35 @@ const generateImage = async (prompt) => {
 
   try {
 
-    console.log("Prompt:", prompt)
+    // prompt clean + short
+    const cleanPrompt = prompt
+      .replace(/[^a-zA-Z0-9 ]/g, "")
+      .split(" ")
+      .slice(0, 10)
+      .join(" ")
 
-    const response = await axios({
-      method: "POST",
-      url: "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0",
-      headers: {
-        Authorization: `Bearer ${process.env.HF_TOKEN}`,
-        "Content-Type": "application/json",
-        Accept: "image/png"
-      },
-      data: {
-        inputs: prompt
-      },
-      responseType: "arraybuffer"
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}`
+
+    console.log("Image URL:", url)
+
+    const response = await axios.get(url, {
+      responseType: "arraybuffer",
+      timeout: 10000
     })
-
-    console.log("Image generated")
 
     return response.data
 
   } catch (error) {
 
-    if (error.response) {
-      console.log(error.response.status)
-      console.log(error.response.data.toString())
-    } else {
-      console.log(error.message)
-    }
+    console.log("Pollinations failed, using fallback image")
 
-    throw error
+    // fallback image
+    const fallback = await axios.get(
+      "https://picsum.photos/512",
+      { responseType: "arraybuffer" }
+    )
+
+    return fallback.data
   }
 
 }
