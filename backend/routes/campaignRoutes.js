@@ -5,6 +5,7 @@ const { createCampaign, generateCampaign, getCampaigns } = require("../controlle
 
 router.post("/create", createCampaign)
 router.post("/generate", generateCampaign)
+
 router.get("/history", getCampaigns)
 
 module.exports = router
