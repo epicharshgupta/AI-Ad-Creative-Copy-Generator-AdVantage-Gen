@@ -1,32 +1,49 @@
 const axios = require("axios")
 
 const generateImage = async (prompt) => {
-
   try {
+    console.log("📸 Using Unsplash API...")
 
-    // prompt clean + short
+    // 🔥 clean prompt
     const cleanPrompt = prompt
+      .toLowerCase()
       .replace(/[^a-zA-Z0-9 ]/g, "")
       .split(" ")
-      .slice(0, 10)
+      .slice(0, 5)
       .join(" ")
 
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}`
+    console.log("Clean Prompt:", cleanPrompt)
 
-    console.log("Image URL:", url)
+    const response = await axios.get(
+      "https://api.unsplash.com/search/photos",
+      {
+        params: {
+          query: cleanPrompt,
+          per_page: 1
+        },
+        headers: {
+          Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`
+        }
+      }
+    )
 
-    const response = await axios.get(url, {
-      responseType: "arraybuffer",
-      timeout: 10000
+    const imageUrl = response.data.results[0]?.urls?.regular
+
+    if (!imageUrl) {
+      throw new Error("No image found")
+    }
+
+    const image = await axios.get(imageUrl, {
+      responseType: "arraybuffer"
     })
 
-    return response.data
+    console.log("✅ Image fetched:", imageUrl)
+
+    return image.data
 
   } catch (error) {
+    console.log("❌ Unsplash failed, using fallback")
 
-    console.log("Pollinations failed, using fallback image")
-
-    // fallback image
     const fallback = await axios.get(
       "https://picsum.photos/512",
       { responseType: "arraybuffer" }
@@ -34,7 +51,6 @@ const generateImage = async (prompt) => {
 
     return fallback.data
   }
-
 }
 
 module.exports = { generateImage }
