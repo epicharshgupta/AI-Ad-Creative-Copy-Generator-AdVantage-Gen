@@ -18,7 +18,11 @@ const CampaignSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  isFavorite: {
+  type: Boolean,
+  default: false
+}
 
 })
 
